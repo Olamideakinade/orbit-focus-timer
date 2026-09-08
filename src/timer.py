@@ -47,11 +47,11 @@ class FocusTimer:
             if self.time_left > 0:
                 self.time_left -= 1
                 if self.on_tick:
-                    self.on_tick(self.time_left, self.duration)
-                
-                if self.time_left == 0:
-                    self.running = False
-                    if self.mode == MODE_FOCUS:
-                        self.sessions_completed += 1
-                    if self.on_complete:
-                        self.on_complete(self.mode)
+                    self.on_tick(self.time_left)
+            
+            if self.time_left == 0:
+                self.running = False
+                if self.mode == MODE_FOCUS:
+                    self.sessions_completed += 1
+                if self.on_complete:
+                    self.on_complete(self.mode)
