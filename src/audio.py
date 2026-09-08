@@ -19,14 +19,29 @@ class SoundSynthesizer:
         sample_rate = 22050
         num_samples = int(sample_rate * (duration_ms / 1000.0))
         t = np.linspace(0, duration_ms / 1000.0, num_samples, endpoint=False)
-        # Apply simple envelope to avoid clicks
-        envelope = np.sin(np.linspace(0, np.pi, num_samples))
-        waveform = volume * np.sin(2 * np.pi * frequency * t) * envelope
-        audio_data = (waveform * 32767).astype(np.int16)
+        wave = volume * np.sin(2 * np.pi * frequency * t)
+        # Apply simple fade in/out to avoid clicking
+        fade = int(sample_rate * 0.01)
+        if num_samples > fade * 2:
+            wave[:fade] *= np.linspace(0, 1, fade)
+            wave[-fade:] *= np.linspace(1, 0, fade)
+        
+        audio_data = (wave * 32767).astype(np.int16)
         return audio_data.tobytes()
 
     @staticmethod
-    def play_chime():
-        """Triggers a pleasant harmonic chime sequence."""
-        # Placeholder logic for cross-platform visual/audio signaling
-        pass
+    def generate_ambient_noise(duration_seconds=5, volume=0.2):
+        """Generates pink/white ambient noise buffer for focus support."""
+        if not HAS_NUMPY:
+            return b""
+        sample_rate = 22050
+        num_samples = sample_rate * duration_seconds
+        noise = np.random.normal(0, 1, num_samples)
+        # Simple low-pass filter simulation via cumulative sum for pink-ish tint
+        pink_noise = np.cumsum(noise)
+        pink_noise -= np.mean(pink_noise)
+        max_val = np.max(np.abs(pink_noise))
+        if max_val > 0:
+            pink_noise = pink_noise / max_val
+        audio_data = (pink_noise * volume * 32767).astype(np.int16)
+        return audio_data.tobytes()
